@@ -1,5 +1,5 @@
 svg_output_path = "temp.svg"
-intervalMinutes = 2  # in minutes
+intervalMinutes = 30  # in minutes
 inkscape_exec = "/Applications/Inkscape.app/Contents/MacOS/inkscape"
 targetPhone = "17472347450"
 imgPath = "/Users/hunterpruett/Pictures/image.png"
@@ -9,10 +9,6 @@ import os
 import time
 from datetime import datetime, timedelta
 import random
-import keyboard
-from pynput.keyboard import Key, Controller
-
-pynputKeyboard = Controller()
 
 imgMap = {
     0: "./templates/leaf.svg",
@@ -22,6 +18,7 @@ imgMap = {
     4: "./templates/prius-v.svg",
     5: "./templates/truck.svg",
 }
+last_img = 0
 
 
 def convert_svg_to_png(input_svg, output_png):
@@ -32,7 +29,7 @@ def convert_svg_to_png(input_svg, output_png):
             capture_output=True,
             text=True,
         )
-        print(f"Successfully converted {input_svg} to {output_png}")
+        #print(f"Successfully converted {input_svg} to {output_png}")
     except subprocess.CalledProcessError as e:
         print(f"Error converting SVG to PNG: {e}")
         print(f"Inkscape output: {e.output}")
@@ -49,46 +46,66 @@ def genMeme(timeInput: str, path: str):
     os.remove(svg_output_path)
 
 
-
-
 print("STARTING...")
-time.sleep(3)
+# time.sleep(3)
 
 
-def getTime():
-    timeStr = datetime.datetime.now().strftime("%I:%M %p").lower()
+def getTimeString(dt: datetime):
+    timeStr = dt.strftime("%I:%M %p").lower()
     if timeStr[0] == "0":
         timeStr = timeStr[1:]
     return timeStr
 
-
-def displayMsg():
-    applescript = """
-display dialog "30 SECONDS!" ¬
-with title "Switch to message" ¬
-with icon caution ¬
-buttons {"OK"}
-"""
-    subprocess.call("osascript -e '{}'".format(applescript), shell=True)
-
-
-def main():
-    next_send_time = datetime.datetime.now()
+def prep(dt: datetime):
+    global last_img
+    timeStr = getTimeString(dt)
 
     while True:
-        if datetime.datetime.now() > next_send_time:
-            next_send_time = datetime.datetime.now() + datetime.timedelta(
-                minutes=random.randint(4, 8)
-            )
-            keyboard.write(f"it is {getTime()}", 0.5)
-            keyboard.press_and_release("space")
-            time.sleep(0.1)
-            keyboard.press_and_release("enter")
-        time.sleep(3)
-        print(
-            f"seconds until next send: {(next_send_time - datetime.datetime.now()).seconds}"
+        imgIdxToUse = random.randint(0, len(imgMap) - 1)
+        if imgIdxToUse != last_img:
+            break
+    last_img = imgIdxToUse
+    genMeme(timeStr, imgMap[imgIdxToUse])
+    print(f'image prepared for {timeStr}')
+
+
+start_time = datetime.now()
+next_run = start_time + timedelta(
+    minutes=intervalMinutes - start_time.minute % intervalMinutes,
+    seconds=-start_time.second,
+)
+next_run.replace(second=0)
+
+print(
+    f"Started. First send at {next_run.strftime("%I:%M:%S %p")}"
+)
+
+prep(next_run)
+
+while True:
+    curr_time = datetime.now()
+
+    if curr_time > next_run:
+        timeStr = getTimeString(next_run)
+        next_run = next_run + timedelta(minutes=intervalMinutes)
+
+        print(f"sending meme for {timeStr}")
+
+        subprocess.run(
+            [
+                "osascript",
+                "scripts/send_imsg_img.applescript",
+                targetPhone,
+                imgPath,
+                f"it is {timeStr}",
+            ]
         )
 
+        prep(next_run)
 
-if __name__ == "__main__":
-    main()
+        print(
+            f"Sleeping. Next send at {next_run.strftime("%I:%M:%S %p")}"
+        )
+
+    
+    time.sleep(1)
