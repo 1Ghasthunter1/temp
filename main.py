@@ -14,6 +14,16 @@ def getTime():
     return timeStr
 
 
+def displayMsg():
+    applescript = """
+display dialog "30 SECONDS!" ¬
+with title "Switch to message" ¬
+with icon caution ¬
+buttons {"OK"}
+"""
+    subprocess.call("osascript -e '{}'".format(applescript), shell=True)
+
+
 def main():
     next_send_time = datetime.datetime.now()
 
@@ -27,7 +37,9 @@ def main():
             time.sleep(0.1)
             keyboard.press_and_release("enter")
         time.sleep(3)
-        print(f"seconds until next send: {(next_send_time - datetime.datetime.now()).seconds}")
+        print(
+            f"seconds until next send: {(next_send_time - datetime.datetime.now()).seconds}"
+        )
 
 
 if __name__ == "__main__":

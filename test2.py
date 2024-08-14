@@ -1,9 +1,10 @@
 import subprocess
 
-subprocess.run(
-    [
-        "osascript",
-        "-e",
-        'set the clipboard to (read (POSIX file "image.png") as «class PNGf»)',
-    ]
-)
+applescript = """
+display dialog "Switch to message" ¬
+with title "This is a pop-up window" ¬
+with icon caution ¬
+buttons {"OK"}
+"""
+
+subprocess.call("osascript -e '{}'".format(applescript), shell=True)

@@ -1,7 +1,3 @@
-svg_output_path = "temp.svg"
-intervalMinutes = 30  # in minutes
-inkscape_exec = "/Applications/Inkscape.app/Contents/MacOS/inkscape"
-
 import subprocess
 import os
 import time
@@ -9,6 +5,12 @@ from datetime import datetime, timedelta
 import random
 import keyboard
 from pynput.keyboard import Key, Controller
+
+svg_output_path = "temp.svg"
+intervalMinutes = 30
+
+inkscape_exec = "/Applications/Inkscape.app/Contents/MacOS/inkscape"
+
 
 pynputKeyboard = Controller()
 
@@ -20,6 +22,16 @@ imgMap = {
     4: "./templates/prius-v.svg",
     5: "./templates/truck.svg",
 }
+
+
+def displayMsg():
+    applescript = """
+display dialog "30 SECONDS!" ¬
+with title "Switch to message" ¬
+with icon caution ¬
+buttons {"OK"}
+"""
+    subprocess.call("osascript -e '{}'".format(applescript), shell=True)
 
 
 def convert_svg_to_png(input_svg, output_png):
@@ -57,22 +69,38 @@ def copyMemeToClipBoard():
     )
 
 
-# Call the function to delete the SVG file after conversion
+def getNextTime(lastTime: datetime):
+    return (
+        lastTime
+        + timedelta(minutes=intervalMinutes)
+        - timedelta(minutes=(lastTime.minute % intervalMinutes))
+    ).replace(second=0, microsecond=0)
 
+
+# Call the function to delete the SVG file after conversion
+# displayMsg()
 
 print("STARTING...")
 time.sleep(3)
 
 last_img = 0
-last_time_ran = datetime.now()
+
+timeToSendNextMsg = getNextTime(datetime.now())
+timeToSendWarning = timeToSendNextMsg - timedelta(seconds=30)
 while True:
     curr_time = datetime.now()
 
-    if (
-        curr_time.minute % intervalMinutes == 0
-        and last_time_ran.minute != curr_time.minute
-    ):
-        last_time_ran = curr_time
+    if timeToSendWarning is not None and timeToSendWarning < curr_time:
+        # displayMsg()
+        timeToSendWarning = timeToSendWarning + timedelta(minutes=intervalMinutes)
+
+    if timeToSendNextMsg is None or timeToSendNextMsg < curr_time:
+
+        timeToSendNextMsg = getNextTime(curr_time)
+        timeToSendWarning = timeToSendNextMsg - timedelta(seconds=30)
+
+        print(timeToSendNextMsg)
+        print(timeToSendWarning)
 
         while True:
             imgIdxToUse = random.randint(0, len(imgMap) - 1)
@@ -97,8 +125,10 @@ while True:
         time.sleep(0.2)
         keyboard.press_and_release("enter")
 
-    nextSendTime = last_time_ran + timedelta(minutes=intervalMinutes) - datetime.now()
     print(
-        f"sleeping. next meme in {nextSendTime.seconds // 60} mins and {nextSendTime.seconds % 60} secs"
+        f"time to next send: {timeToSendNextMsg.strftime('%I:%M:%S:%f %p')} ({round((timeToSendNextMsg - curr_time).total_seconds())}s)"
+    )
+    print(
+        f"time to next warning: {timeToSendWarning.strftime('%I:%M:%S:%f %p')} ({round((timeToSendWarning - curr_time).total_seconds())}s)"
     )
     time.sleep(1)
