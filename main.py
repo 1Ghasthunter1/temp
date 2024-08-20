@@ -10,14 +10,7 @@ import time
 from datetime import datetime, timedelta
 import random
 
-imgMap = {
-    0: "./templates/leaf.svg",
-    1: "./templates/prius-prime.svg",
-    2: "./templates/prius-compact.svg",
-    3: "./templates/prius-compact-2.svg",
-    4: "./templates/prius-v.svg",
-    5: "./templates/truck.svg",
-}
+imgMap = {x[0]: f"./templates/{x[1]}" for x in enumerate(os.listdir("./templates"))}
 last_img = 0
 
 
@@ -29,7 +22,7 @@ def convert_svg_to_png(input_svg, output_png):
             capture_output=True,
             text=True,
         )
-        #print(f"Successfully converted {input_svg} to {output_png}")
+        # print(f"Successfully converted {input_svg} to {output_png}")
     except subprocess.CalledProcessError as e:
         print(f"Error converting SVG to PNG: {e}")
         print(f"Inkscape output: {e.output}")
@@ -56,6 +49,7 @@ def getTimeString(dt: datetime):
         timeStr = timeStr[1:]
     return timeStr
 
+
 def prep(dt: datetime):
     global last_img
     timeStr = getTimeString(dt)
@@ -66,7 +60,7 @@ def prep(dt: datetime):
             break
     last_img = imgIdxToUse
     genMeme(timeStr, imgMap[imgIdxToUse])
-    print(f'image prepared for {timeStr}')
+    print(f"image prepared for {timeStr}")
 
 
 start_time = datetime.now()
@@ -76,9 +70,7 @@ next_run = start_time + timedelta(
 )
 next_run.replace(second=0)
 
-print(
-    f"Started. First send at {next_run.strftime("%I:%M:%S %p")}"
-)
+print(f"Started. First send at {next_run.strftime('%I:%M:%S %p')}")
 
 prep(next_run)
 
@@ -103,9 +95,6 @@ while True:
 
         prep(next_run)
 
-        print(
-            f"Sleeping. Next send at {next_run.strftime("%I:%M:%S %p")}"
-        )
+        print(f"Sleeping. Next send at {next_run.strftime('%I:%M:%S %p')}")
 
-    
     time.sleep(1)
