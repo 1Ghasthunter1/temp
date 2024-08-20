@@ -1,10 +1,4 @@
-import subprocess
+import os
 
-applescript = """
-display dialog "Switch to message" ¬
-with title "This is a pop-up window" ¬
-with icon caution ¬
-buttons {"OK"}
-"""
-
-subprocess.call("osascript -e '{}'".format(applescript), shell=True)
+files = os.listdir("./templates")
+print(files)
