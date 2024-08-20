@@ -1,3 +1,4 @@
+svg_output_path = "temp.svg"
 intervalMinutes = 30  # in minutes
 inkscape_exec = "/Applications/Inkscape.app/Contents/MacOS/inkscape"
 targetPhone = "17072286402"
