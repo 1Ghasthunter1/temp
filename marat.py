@@ -1,7 +1,7 @@
 svg_output_path = "temp.svg"
 intervalMinutes = 1  # in minutes
 inkscape_exec = "/Applications/Inkscape.app/Contents/MacOS/inkscape"
-targetPhone = "17472737161"
+targetPhone = "18182392433"
 imgPath = "/Users/hunterpruett/Pictures/image.png"
 
 import subprocess
